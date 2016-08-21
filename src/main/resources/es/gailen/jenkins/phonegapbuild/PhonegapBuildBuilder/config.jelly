@@ -33,6 +33,9 @@
     <f:entry title="Android Key Password" field="androidKeyPassword">
       <f:password />
     </f:entry>
+    <f:entry title="Android Keystore Password" field="androidKeystorePassword">
+      <f:password />
+    </f:entry>
   </f:section>
 
 </j:jelly>

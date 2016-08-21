@@ -17,40 +17,33 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 
 /**
- * Sample {@link Builder}.
+ * Based on Jenkins' Sample {@link Builder}.
  *
  * <p>
- * When the user configures the project and enables this builder,
- * {@link DescriptorImpl#newInstance(StaplerRequest)} is invoked
- * and a new {@link HelloWorldBuilder} is created. The created
- * instance is persisted to the project configuration XML by using
- * XStream, so this allows you to use instance fields (like {@link #name})
- * to remember the configuration.
- *
+ * Will connect delegate 'phonegap build' tasks to the {@link PhonegapBuilder}
+ * Only responsibilites are fetching parameters from UI and delegating the build.
  * <p>
- * When a build is performed, the {@link #perform(AbstractBuild, Launcher, BuildListener)}
- * method will be invoked. 
  *
- * @author Kohsuke Kawaguchi
  */
-public class HelloWorldBuilder extends Builder {
+public class PhonegapBuildBuilder extends Builder {
 
     private final String name;
     private final String pgbuildAppId;
     private final String pgbuildToken;
     private final String androidKeyId;
     private final String androidKeyPassword;
+    private final String androidKeystorePassword;
     private final String iosKeyId;
     private final String iosKeyPassword;
 
-    // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
     @DataBoundConstructor
-    public HelloWorldBuilder(String name, String pgbuildAppId, String pgbuildToken, String androidKeyId, String androidKeyPassword, String iosKeyId, String iosKeyPassword) {
+    public PhonegapBuildBuilder(String name, String pgbuildAppId, String pgbuildToken, String androidKeyId, String androidKeyPassword, String androidKeystorePassword, String iosKeyId, String iosKeyPassword) {
         this.name = name;
         this.pgbuildAppId = pgbuildAppId;
         this.pgbuildToken = pgbuildToken;
         this.androidKeyId = androidKeyId;
         this.androidKeyPassword = androidKeyPassword;
+        this.androidKeystorePassword = androidKeystorePassword;
         this.iosKeyId = iosKeyId;
         this.iosKeyPassword = iosKeyPassword;
     }
@@ -78,6 +71,10 @@ public class HelloWorldBuilder extends Builder {
         return androidKeyPassword;
     }
 
+    public String getAndroidKeystorePassword() {
+        return androidKeystorePassword;
+    }
+
     public String getIosKeyId() {
         return iosKeyId;
     }
@@ -88,26 +85,13 @@ public class HelloWorldBuilder extends Builder {
 
     @Override
     public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
-        // This is where you 'build' the project.
-        // Since this is a dummy, we just say 'hello world' and call that a build.
-        listener.getLogger().println("Probando..."+pgbuildToken);
-        listener.getLogger().println(build.getWorkspace().absolutize());
-        listener.getLogger().println(build.getWorkspace().absolutize().toURI());
-        EnvVars env = build.getEnvironment(listener);
-        listener.getLogger().println(env.expand(this.getPgbuildToken()));
+        //EnvVars env = build.getEnvironment(listener);
+        //listener.getLogger().println(env.expand(this.getPgbuildToken()));
 
-        PhonegapBuilder builder = new PhonegapBuilder(this.pgbuildToken, this.pgbuildAppId);
-        builder.buildApp(build.getWorkspace().absolutize().toURI());
+        PhonegapBuilder builder = new PhonegapBuilder(this.pgbuildToken, this.pgbuildAppId, this.androidKeyId, this.iosKeyId, listener.getLogger());
+        builder.unlockKeys(this.androidKeyPassword, this.androidKeystorePassword, this.iosKeyPassword);
+        builder.buildApp(build.getWorkspace().absolutize());
 
-
-//        listener.getLogger().println(build.getBuildVariableResolver().resolve("{JOB_NAME"));
-/*
-        // This also shows how you can consult the global configuration of the builder
-        if (getDescriptor().getUseFrench())
-            listener.getLogger().println("Bonjour, "+name+"!");
-        else
-            listener.getLogger().println("Hellou, "+name+"!");
-*/
         return true;
 
     }
@@ -121,11 +105,11 @@ public class HelloWorldBuilder extends Builder {
     }
 
     /**
-     * Descriptor for {@link HelloWorldBuilder}. Used as a singleton.
+     * Descriptor for {@link PhonegapBuildBuilder}. Used as a singleton.
      * The class is marked as public so that it can be accessed from views.
      *
      * <p>
-     * See <tt>src/main/resources/hudson/plugins/hello_world/HelloWorldBuilder/*.jelly</tt>
+     * See <tt>src/main/resources/es/gailen/jenkins/phonegapbuild/PhonegapBuildBuilder/*.jelly</tt>
      * for the actual HTML fragment for the configuration screen.
      */
     @Extension // This indicates to Jenkins that this is an implementation of an extension point.
@@ -148,16 +132,7 @@ public class HelloWorldBuilder extends Builder {
         }
 
         /**
-         * Performs on-the-fly validation of the form field 'name'.
-         *
-         * @param value
-         *      This parameter receives the value that the user has typed.
-         * @return
-         *      Indicates the outcome of the validation. This is sent to the browser.
-         *      <p>
-         *      Note that returning {@link FormValidation#error(String)} does not
-         *      prevent the form from being saved. It just means that a message
-         *      will be displayed to the user. 
+         * Validators
          */
         public FormValidation doCheckName(@QueryParameter String value)
                 throws IOException, ServletException {
@@ -194,7 +169,7 @@ public class HelloWorldBuilder extends Builder {
         public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
             // To persist global configuration information,
             // set that to properties and call save().
-            useFrench = formData.getBoolean("useFrench");
+            //useFrench = formData.getBoolean("useFrench");
             // ^Can also use req.bindJSON(this, formData);
             //  (easier when there are many fields; need set* methods for this, like setUseFrench)
             save();

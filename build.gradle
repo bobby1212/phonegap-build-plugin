@@ -27,6 +27,7 @@ jenkinsPlugin {
 
 dependencies {
     compile 'org.codehaus.groovy.modules.http-builder:http-builder:0.7'
+    compile 'org.apache.httpcomponents:httpmime:4.2.1'
 }
 
 sourceSets {

@@ -35,16 +35,19 @@ class PhonegapBuilder {
   
   private Map appInfo
   private boolean overridedKeys = false
+  private PrintStream logger = System.out
   
   def http = new HTTPBuilder('https://build.phonegap.com')
   
-  public PhonegapBuilder(token, appId) {
+  public PhonegapBuilder(String token, String appId, PrintStream logger) {
+    this.logger = logger
     this.token = token
     this.appId = appId
     this.refreshAppInfo()
   }
   
-  public PhonegapBuilder(token, appId, androidKeyId, iosKeyId) {
+  public PhonegapBuilder(String token, String appId, String androidKeyId, String iosKeyId, PrintStream logger = System.out) {
+    this.logger = logger
     this.token = token
     this.appId = appId
     this.androidKeyId = androidKeyId
@@ -54,12 +57,16 @@ class PhonegapBuilder {
   }
   
   private void refreshAppInfo() {
-    println  "Refreshing... /api/v1/apps/${appId}?auth_token=${token}"
+    this.logger.println "Refreshing... /api/v1/apps/${appId}?auth_token=${token}"
     this.appInfo = http.get(path: "/api/v1/apps/${appId}", query: [auth_token: token])
   }
-  
+
+  public void setLogger(PrintStream log) {
+    this.logger = log
+  }
+
   void unlockKeys(androidKeyPass, androidKeystorePass, iosPass) {
-    if (this.iosKeyId)
+    if (this.iosKeyId) {
         http.request(PUT) {
             uri.path = "/api/v1/keys/ios/${this.iosKeyId}?auth_token=${this.token}"
             send JSON, [
@@ -67,23 +74,29 @@ class PhonegapBuilder {
                 data: [ password: iosPass ]
             ]
             response.success = { resp, data ->
-              println data
+              this.logger.println data
             }
         }
-        
-    if (this.androidKeyId)
-        http.request(PUT) {
-            uri.path = "/api/v1/keys/android/${this.androidKeyId}"
-            send JSON, [
-                auth_token: this.token,
-                data: [
-                    key_pw: androidKeyPass,
-                    keystore_pw:androidKeystorePass
-                ]
-            ]
-            response.success = { resp, data ->
-              println data
-            }
+    } else {
+      logger.println("No iOS key to unlock")
+    }
+
+    if (this.androidKeyId) {
+      http.request(PUT) {
+          uri.path = "/api/v1/keys/android/${this.androidKeyId}"
+          send JSON, [
+              auth_token: this.token,
+              data: [
+                  key_pw: androidKeyPass,
+                  keystore_pw:androidKeystorePass
+              ]
+          ]
+          response.success = { resp, data ->
+            this.logger.println data
+          }
+      }
+    } else {
+      logger.println("No Android key to unlock")
     }
   }
   
@@ -108,8 +121,8 @@ class PhonegapBuilder {
   }
   
   private void uploadZipFile(String zippath) {
-    println "Uploading ${zippath}..."
-    println "/api/v1/apps/${this.appId}?auth_token=${this.token}"
+    this.logger.println "Uploading ${zippath}..."
+    this.logger.println "/api/v1/apps/${this.appId}?auth_token=${this.token}"
 
     http.request PUT, TEXT, {req->
         uri.path =  "/api/v1/apps/${this.appId}?auth_token=${this.token}"
@@ -125,11 +138,11 @@ class PhonegapBuilder {
             ]
         ]
         response.success = { resp, data ->
-            println data.getText()
+            this.logger.println data.getText()
         }
         
         response.failure = { resp, a ->
-          println "ERROR - ${resp.status}"
+          this.logger.println "ERROR - ${resp.status}"
         }
     }
   }
@@ -141,6 +154,7 @@ class PhonegapBuilder {
     }
     
     String zippath = prepareZipFilePath(workingDir)
+    println "About to upload... ${zippath}"
     uploadZipFile(zippath)
   }
 }
