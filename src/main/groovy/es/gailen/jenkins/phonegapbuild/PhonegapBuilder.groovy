@@ -147,6 +147,7 @@ class PhonegapBuilder {
               Package:\t${json.package}
               Version:\t${json.version}
               Builds:\t${json.build_count}
+              Installers:\t${json.install_url}
               """.stripIndent()
         }
         
