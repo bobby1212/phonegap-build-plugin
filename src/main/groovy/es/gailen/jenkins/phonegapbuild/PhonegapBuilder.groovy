@@ -57,7 +57,7 @@ class PhonegapBuilder {
   }
   
   private void refreshAppInfo() {
-    this.logger.println "Refreshing... /api/v1/apps/${appId}?auth_token=${token}"
+    this.logger.println "Refreshing '${appId}' app info..."
     this.appInfo = http.get(path: "/api/v1/apps/${appId}", query: [auth_token: token])
   }
 
@@ -74,11 +74,11 @@ class PhonegapBuilder {
                 data: [ password: iosPass ]
             ]
             response.success = { resp, data ->
-              this.logger.println data
+              this.logger.println "iOS key '${data.title}' (${this.iosKeyId}) locked: ${data.locked}"
             }
         }
     } else {
-      logger.println("No iOS key to unlock")
+      logger.println("-- No iOS key to unlock --")
     }
 
     if (this.androidKeyId) {
@@ -92,11 +92,12 @@ class PhonegapBuilder {
               ]
           ]
           response.success = { resp, data ->
-            this.logger.println data
+            this.logger.println "Android key '${data.alias}' (${this.androidKeyId}) locked: ${data.locked}"
+
           }
       }
     } else {
-      logger.println("No Android key to unlock")
+      logger.println("-- No Android key to unlock --")
     }
   }
   
@@ -122,7 +123,6 @@ class PhonegapBuilder {
   
   private void uploadZipFile(String zippath) {
     this.logger.println "Uploading ${zippath}..."
-    this.logger.println "/api/v1/apps/${this.appId}?auth_token=${this.token}"
 
     http.request PUT, TEXT, {req->
         uri.path =  "/api/v1/apps/${this.appId}?auth_token=${this.token}"
@@ -138,13 +138,26 @@ class PhonegapBuilder {
             ]
         ]
         response.success = { resp, data ->
-            this.logger.println data.getText()
+            def slurper = new groovy.json.JsonSlurper()
+            def json = slurper.parseText(data.text)
+            this.logger.println """
+            App build launched:
+              ID:\t\t${json.id}
+              Title:\t${json.title}
+              Package:\t${json.package}
+              Version:\t${json.version}
+              Builds:\t${json.build_count}
+              """.stripIndent()
         }
         
         response.failure = { resp, a ->
           this.logger.println "ERROR - ${resp.status}"
         }
     }
+  }
+
+  void waitForBinaries() {
+    this.logger.println "Waiting for Phonegap Build to sculpt binaries..."
   }
   
   void buildApp(FilePath workingDir) {
@@ -154,7 +167,8 @@ class PhonegapBuilder {
     }
     
     String zippath = prepareZipFilePath(workingDir)
-    println "About to upload... ${zippath}"
+    this.logger.println "About to upload... ${zippath}"
     uploadZipFile(zippath)
+    waitForBinaries()
   }
 }
