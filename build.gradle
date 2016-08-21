@@ -1,0 +1,37 @@
+plugins {
+  id "org.jenkins-ci.jpi" version "0.16.0"
+}
+
+apply plugin: 'groovy'
+
+group = "es.gailen.jenkins"
+version = "0.0.1-SNAPSHOT"    // Or whatever your version is.
+description = "A plugin for automating the use of Phonegap Build for hybrid/ionic/cordova application development"
+
+jenkinsPlugin {
+    coreVersion = "1.580.1"                                               // Version of Jenkins core this plugin depends on.
+    displayName = "Phonegap Build plugin"                // Human-readable name of plugin.
+    url = "http://wiki.jenkins-ci.org/display/JENKINS/SomePluginPage"   // URL for plugin on Jenkins wiki or elsewhere.
+    //gitHubUrl = "https://github.com/jenkinsci/phonegap-build-plugin"              // Plugin URL on GitHub. Optional.
+    shortName = "phonegap-build"                                           // Plugin ID, defaults to the project name without trailing '-plugin'
+
+    // The developers section is optional, and corresponds to the POM developers section.
+    developers {
+        developer {
+            id "juriarte"
+            name "Jorge Uriarte"
+            email "jorge.uriarte@gailen.es"
+        }
+    }
+}
+
+dependencies {
+    compile 'org.codehaus.groovy.modules.http-builder:http-builder:0.7'
+}
+
+sourceSets {
+  main {
+    java { srcDirs = [] }    // no source dirs for the java compiler
+    groovy { srcDirs = ["src/main/java", "src/main/groovy"] }  // compile   everything in src/ with groovy
+  }
+}

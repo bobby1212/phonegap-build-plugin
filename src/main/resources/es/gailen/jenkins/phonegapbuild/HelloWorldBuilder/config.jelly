@@ -1,0 +1,38 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+  <!--
+    This jelly script is used for per-project configuration.
+
+    See global.jelly for a general discussion about jelly script.
+  -->
+
+  <!--
+    Creates a text field that shows the value of the "name" property.
+    When submitted, it will be passed to the corresponding constructor parameter.
+  -->
+  <f:entry title="App Name" field="name">
+    <f:textbox />
+  </f:entry>
+  <f:entry title="Phonegap Build Auth Token" field="pgbuildToken">
+    <f:textbox />
+  </f:entry>
+  <f:entry title="Phonegap Build App ID" field="pgbuildAppId">
+    <f:textbox />
+  </f:entry>
+
+  <f:section title="Signing Keys">
+    <f:entry title="iOS Key ID" field="iosKeyId">
+      <f:textbox />
+    </f:entry>
+    <f:entry title="iOS Key Password" field="iosKeyPassword">
+      <f:password />
+    </f:entry>
+    <f:entry title="Android Key ID" field="androidKeyId">
+      <f:textbox />
+    </f:entry>
+    <f:entry title="Android Key Password" field="androidKeyPassword">
+      <f:password />
+    </f:entry>
+  </f:section>
+
+</j:jelly>
