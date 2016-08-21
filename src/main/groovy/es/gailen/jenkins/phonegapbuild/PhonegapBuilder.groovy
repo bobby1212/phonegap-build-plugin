@@ -26,6 +26,7 @@ import hudson.util.DirScanner.Glob
 
 class PhonegapBuilder {
   def token
+  def appName = 'appnametesting'
   def appId
   def androidKeyId
   def androidKeyPassword
@@ -36,6 +37,9 @@ class PhonegapBuilder {
   private Map appInfo
   private boolean overridedKeys = false
   private PrintStream logger = System.out
+
+  private Map status = [android:'pending', ios:'pending']
+  private List downloads = []
   
   def http = new HTTPBuilder('https://build.phonegap.com')
   
@@ -59,10 +63,6 @@ class PhonegapBuilder {
   private void refreshAppInfo() {
     this.logger.println "Refreshing '${appId}' app info..."
     this.appInfo = http.get(path: "/api/v1/apps/${appId}", query: [auth_token: token])
-  }
-
-  public void setLogger(PrintStream log) {
-    this.logger = log
   }
 
   void unlockKeys(androidKeyPass, androidKeystorePass, iosPass) {
@@ -157,10 +157,44 @@ class PhonegapBuilder {
     }
   }
 
-  void waitForBinaries() {
-    this.logger.println "Waiting for Phonegap Build to sculpt binaries..."
+  String extensions(platform) {
+    [android:'apk', ios:'ipa', winphone:'xap'].get(platform)
   }
-  
+
+  private void waitForBinaries() {
+    this.logger.println "Waiting for Phonegap Build to sculpt binaries..."
+    while ('pending' in [status.android, status.ios]) {
+      this.logger.println "Asking for status..."
+      sleep(10000)
+      url = new URL("${baseURL}/api/v1/apps/?auth_token=${TOKEN}")
+      data = slurper.parseText(url.text)
+      app = data.apps.find { it.id == this.appId }
+      if (!app) {
+        this.logger.println "Application ${this.appId} not found!!!"
+        System.exit(1)
+      }
+      status = app.status
+      this.logger.println "Status: ${status}"
+      status.each { platform, st ->
+              if (st == 'complete' && !(platform in downloads)) {
+                  downloads << platform
+                  downloadPlatform(baseURL, platform, this.appName)
+              }
+      }
+    }
+  }
+
+  private void downloadPlatform(baseURL, platform, filename) {
+      def slurper = new groovy.json.JsonSlurper()
+      def androidURL = "${baseURL}${app.download[platform]}?auth_token=${TOKEN}"
+      def androidFileURL = slurper.parseText(new URL(androidURL).text).location
+      this.logger.println "Downloading ${extensions(platform)} binary from (${androidFileURL})"
+
+      def file = new File("${filename}.${extensions(platform)}").newOutputStream()  
+      file << new URL(androidFileURL).openStream()  
+      file.close()
+  }
+
   void buildApp(FilePath workingDir) {
     if (!this.overridedKeys) {
       this.androidKeyId = this.appInfo.keys?.android?.id
