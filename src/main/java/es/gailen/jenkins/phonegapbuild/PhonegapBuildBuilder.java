@@ -1,4 +1,5 @@
 package es.gailen.jenkins.phonegapbuild;
+
 import hudson.Launcher;
 import hudson.Extension;
 import hudson.EnvVars;
@@ -28,6 +29,7 @@ import java.io.IOException;
 public class PhonegapBuildBuilder extends Builder {
 
     private final String name;
+    private final String version;
     private final String pgbuildAppId;
     private final String pgbuildToken;
     private final String androidKeyId;
@@ -37,8 +39,9 @@ public class PhonegapBuildBuilder extends Builder {
     private final String iosKeyPassword;
 
     @DataBoundConstructor
-    public PhonegapBuildBuilder(String name, String pgbuildAppId, String pgbuildToken, String androidKeyId, String androidKeyPassword, String androidKeystorePassword, String iosKeyId, String iosKeyPassword) {
+    public PhonegapBuildBuilder(String name, String version, String pgbuildAppId, String pgbuildToken, String androidKeyId, String androidKeyPassword, String androidKeystorePassword, String iosKeyId, String iosKeyPassword) {
         this.name = name;
+        this.version = version;
         this.pgbuildAppId = pgbuildAppId;
         this.pgbuildToken = pgbuildToken;
         this.androidKeyId = androidKeyId;
@@ -83,12 +86,16 @@ public class PhonegapBuildBuilder extends Builder {
         return iosKeyPassword;
     }
 
+    public String getVersion() {
+        return version;
+    }
+
     @Override
     public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
-        //EnvVars env = build.getEnvironment(listener);
-        //listener.getLogger().println(env.expand(this.getPgbuildToken()));
-
+        EnvVars env = build.getEnvironment(listener);
         PhonegapBuilder builder = new PhonegapBuilder(this.pgbuildToken, this.pgbuildAppId, this.androidKeyId, this.iosKeyId, listener.getLogger());
+        builder.setVersion(env.expand(this.getVersion()));
+        builder.setAppName(env.expand(this.getName()));
         builder.unlockKeys(this.androidKeyPassword, this.androidKeystorePassword, this.iosKeyPassword);
         builder.buildApp(build.getWorkspace().absolutize());
 
