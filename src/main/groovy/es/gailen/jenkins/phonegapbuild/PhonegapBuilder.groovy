@@ -168,7 +168,7 @@ class PhonegapBuilder {
     [android:'apk', ios:'ipa', winphone:'xap'].get(platform)
   }
 
-  private void waitForBinaries() {
+  private void waitForBinaries(workingDir) {
     this.logger.println "Waiting for Phonegap Build to sculpt binaries..."
     while ('pending' in [status.android, status.ios]) {
       this.logger.println "Asking for status..."
@@ -185,19 +185,19 @@ class PhonegapBuilder {
       status.each { platform, st ->
         if (st == 'complete' && !(platform in downloads)) {
             downloads << platform
-            downloadPlatform(app, platform, this.appName)
+            downloadPlatform(app, platform, this.appName, workingDir)
         }
       }
     }
   }
 
-  private void downloadPlatform(app, platform, filename = "phonegapbuild") {
+  private void downloadPlatform(app, platform, filename = "phonegapbuild", workingDir) {
       def slurper = new groovy.json.JsonSlurper()
       def androidURL = "${baseURL}${app.download[platform]}?auth_token=${this.token}"
       def androidFileURL = slurper.parseText(new URL(androidURL).text).location
-      this.logger.println "Downloading ${extensions(platform)} binary from (${androidFileURL})"
+      def file = new File("${workingDir}${filename}.${extensions(platform)}").newOutputStream()  
+      this.logger.println "Downloading ${extensions(platform)} binary from '${androidFileURL}' to '${file.absolutePath}'..."
 
-      def file = new File("${filename}.${extensions(platform)}").newOutputStream()  
       file << new URL(androidFileURL).openStream()
       file.close()
       this.logger.println "Saved at ${file.absolutePath}"
@@ -223,6 +223,6 @@ class PhonegapBuilder {
     String zippath = prepareZipFilePath(workingDir)
     this.logger.println "About to upload... ${zippath}"
     uploadZipFile(zippath)
-    waitForBinaries()
+    waitForBinaries(workingDir)
   }
 }
