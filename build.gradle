@@ -3,13 +3,15 @@ plugins {
 }
 
 apply plugin: 'groovy'
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
 
 group = "es.gailen.jenkins"
 version = "0.0.1-SNAPSHOT"    // Or whatever your version is.
 description = "A plugin for automating the use of Phonegap Build for hybrid/ionic/cordova application development"
 
 jenkinsPlugin {
-    coreVersion = "1.580.1"                                               // Version of Jenkins core this plugin depends on.
+    coreVersion = "2.8"                                               // Version of Jenkins core this plugin depends on.
     displayName = "Phonegap Build plugin"                // Human-readable name of plugin.
     url = "http://wiki.jenkins-ci.org/display/JENKINS/SomePluginPage"   // URL for plugin on Jenkins wiki or elsewhere.
     //gitHubUrl = "https://github.com/jenkinsci/phonegap-build-plugin"              // Plugin URL on GitHub. Optional.
