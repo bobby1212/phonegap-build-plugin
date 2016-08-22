@@ -137,12 +137,14 @@ class PhonegapBuilder {
         multipartRequestEntity.addPart('file0', new FileBody(new File(zippath), "text/txt"))
     
         req.entity = multipartRequestEntity
-        send JSON, [
-            auth_token: this.token,
-            data: [
+        def meta = [
                 version: this.version,
                 title: this.appName
             ]
+        this.logger.println "Metadata: ${meta}"
+        send JSON, [
+            auth_token: this.token,
+            data: meta
         ]
         response.success = { resp, data ->
             def slurper = new groovy.json.JsonSlurper()
@@ -185,7 +187,7 @@ class PhonegapBuilder {
       status.each { platform, st ->
         if (st == 'complete' && !(platform in downloads)) {
             downloads << platform
-            downloadPlatform(app, platform, this.appName, workingDir)
+            //downloadPlatform(app, platform, this.appName, workingDir)
         }
       }
     }
@@ -206,12 +208,18 @@ class PhonegapBuilder {
 
   void updateConfigXML(path) {
     def config_xml = new XmlParser().parse(path)
-    if (this.version)
+    if (this.version) {
+      this.logger.println "Changing 'version' in config.xml to '${this.version}'"
       config_xml.attributes().put('version', this.version)
-    if (this.appName)
+    }
+    if (this.appName) {
+      this.logger.println "Changing 'title' in config.xml to '${this.appName}'"
       config_xml.name.replaceNode{name(this.appName)}
-    new XmlNodePrinter(new PrintWriter(new FileWriter(path))).print(config_xml)
-    this.logger.println("CONFIGXML UPDATED!")
+    }
+    if (this.appName && this.version) {
+      new XmlNodePrinter(new PrintWriter(new FileWriter(path))).print(config_xml)
+      this.logger.println("Configuration file updated at '${path}'!")
+    }
   }
 
   void buildApp(FilePath workingDir) {
