@@ -134,18 +134,9 @@ class PhonegapBuilder {
         uri.path =  "/api/v1/apps/${this.appId}?auth_token=${this.token}"
     
         MultipartEntity multipartRequestEntity = new MultipartEntity()
-        multipartRequestEntity.addPart('file0', new FileBody(new File(zippath), "text/txt"))
-    
+        multipartRequestEntity.addPart('file', new FileBody(new File(zippath), "text/txt"))
+        multipartRequestEntity.addPart('auth_token', new StringBody(this.token))
         req.entity = multipartRequestEntity
-        def meta = [
-                version: this.version,
-                title: this.appName
-            ]
-        this.logger.println "Metadata: ${meta}"
-        send JSON, [
-            auth_token: this.token,
-            data: meta
-        ]
         response.success = { resp, data ->
             def slurper = new groovy.json.JsonSlurper()
             def json = slurper.parseText(data.text)
