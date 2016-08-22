@@ -195,11 +195,12 @@ class PhonegapBuilder {
       def slurper = new groovy.json.JsonSlurper()
       def androidURL = "${baseURL}${app.download[platform]}?auth_token=${this.token}"
       def androidFileURL = slurper.parseText(new URL(androidURL).text).location
-      def file = new File("${workingDir}${filename}.${extensions(platform)}").newOutputStream()  
-      this.logger.println "Downloading ${extensions(platform)} binary from '${androidFileURL}' to '${file.absolutePath}'..."
+      this.logger.println "Downloading ${extensions(platform)} binary from (${androidFileURL})"
 
-      file << new URL(androidFileURL).openStream()
-      file.close()
+      def file = new File("${workingDir}/${filename}.${extensions(platform)}")
+      def os = file.newOutputStream()
+      os << new URL(androidFileURL).openStream()
+      os.close()
       this.logger.println "Saved at ${file.absolutePath}"
   }
 

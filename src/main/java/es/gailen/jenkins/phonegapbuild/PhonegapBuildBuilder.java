@@ -28,8 +28,9 @@ import java.io.IOException;
  */
 public class PhonegapBuildBuilder extends Builder {
 
-    private final String name;
-    private final String version;
+    private boolean configOverrided = false;
+    private String name = null;
+    private String version = null;
     private final String pgbuildAppId;
     private final String pgbuildToken;
     private final String androidKeyId;
@@ -39,9 +40,12 @@ public class PhonegapBuildBuilder extends Builder {
     private final String iosKeyPassword;
 
     @DataBoundConstructor
-    public PhonegapBuildBuilder(String name, String version, String pgbuildAppId, String pgbuildToken, String androidKeyId, String androidKeyPassword, String androidKeystorePassword, String iosKeyId, String iosKeyPassword) {
-        this.name = name;
-        this.version = version;
+    public PhonegapBuildBuilder(JSONObject overrideConfig, String pgbuildAppId, String pgbuildToken, String androidKeyId, String androidKeyPassword, String androidKeystorePassword, String iosKeyId, String iosKeyPassword) {
+        if (overrideConfig != null) {
+            this.configOverrided = true;
+            this.name = overrideConfig.getString("name");
+            this.version = overrideConfig.getString("version");
+        }
         this.pgbuildAppId = pgbuildAppId;
         this.pgbuildToken = pgbuildToken;
         this.androidKeyId = androidKeyId;
@@ -51,9 +55,9 @@ public class PhonegapBuildBuilder extends Builder {
         this.iosKeyPassword = iosKeyPassword;
     }
 
-    /**
-     * We'll use this from the <tt>config.jelly</tt>.
-     */
+    public boolean isOverridedConfig() {
+        return name != null || version != null;
+    }
     public String getName() {
         return name;
     }
@@ -94,8 +98,10 @@ public class PhonegapBuildBuilder extends Builder {
     public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
         EnvVars env = build.getEnvironment(listener);
         PhonegapBuilder builder = new PhonegapBuilder(this.pgbuildToken, this.pgbuildAppId, this.androidKeyId, this.iosKeyId, listener.getLogger());
-        builder.setVersion(env.expand(this.getVersion()));
-        builder.setAppName(env.expand(this.getName()));
+        if (this.configOverrided) {
+            builder.setVersion(env.expand(this.getVersion()));
+            builder.setAppName(env.expand(this.getName()));
+        }
         builder.unlockKeys(this.androidKeyPassword, this.androidKeystorePassword, this.iosKeyPassword);
         builder.buildApp(build.getWorkspace().absolutize());
 
