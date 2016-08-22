@@ -218,10 +218,10 @@ class PhonegapBuilder {
       this.androidKeyId = this.appInfo.keys?.android?.id
       this.iosKeyId = this.appInfo.keys?.ios?.id
     }
-    
+
     updateConfigXML("${workingDir}/www/config.xml")
+
     String zippath = prepareZipFilePath(workingDir)
-    this.logger.println "About to upload... ${zippath}"
     uploadZipFile(zippath)
     waitForBinaries(workingDir)
   }
