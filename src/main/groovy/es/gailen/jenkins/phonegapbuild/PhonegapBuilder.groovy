@@ -178,7 +178,7 @@ class PhonegapBuilder {
       status.each { platform, st ->
         if (st == 'complete' && !(platform in downloads)) {
             downloads << platform
-            //downloadPlatform(app, platform, this.appName, workingDir)
+            downloadPlatform(app, platform, this.appName, workingDir)
         }
       }
     }
