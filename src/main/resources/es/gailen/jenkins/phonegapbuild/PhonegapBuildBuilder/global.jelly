@@ -13,6 +13,9 @@
     so it should be straightforward to find them.
   -->
   <f:section title="Phonegap Build">
+    <div>
+      There's currently nothing to configure globally for the Phonegap Build Plugin,
+    </div>
 <!--
     <f:entry title="French" field="useFrench"
       description="Check if we should say hello in French">
