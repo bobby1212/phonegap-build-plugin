@@ -98,6 +98,7 @@ public class PhonegapBuildBuilder extends Builder {
     public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
         EnvVars env = build.getEnvironment(listener);
         PhonegapBuilder builder = new PhonegapBuilder(this.pgbuildToken, this.pgbuildAppId, this.androidKeyId, this.iosKeyId, listener.getLogger());
+        builder.setFileBaseName(env.get("JOB_NAME"));
         if (this.configOverrided) {
             builder.setVersion(env.expand(this.getVersion()));
             builder.setAppName(env.expand(this.getName()));

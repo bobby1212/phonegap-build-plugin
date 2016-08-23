@@ -31,6 +31,7 @@ class PhonegapBuilder {
   def token
   def appName = null
   def version = null
+  def fileBaseName = null  // Basename for binaries
   def appId
   def androidKeyId
   def androidKeyPassword
@@ -178,19 +179,19 @@ class PhonegapBuilder {
       status.each { platform, st ->
         if (st == 'complete' && !(platform in downloads)) {
             downloads << platform
-            downloadPlatform(app, platform, this.appName, workingDir)
+            downloadPlatform(app, platform, this.fileBaseName, workingDir)
         }
       }
     }
   }
 
-  private void downloadPlatform(app, platform, filename = "phonegapbuild", workingDir) {
+  private void downloadPlatform(app, platform, fileBaseName = "phonegapbuild", workingDir) {
       def slurper = new groovy.json.JsonSlurper()
       def androidURL = "${baseURL}${app.download[platform]}?auth_token=${this.token}"
       def androidFileURL = slurper.parseText(new URL(androidURL).text).location
       this.logger.println "Downloading ${extensions(platform)} binary from (${androidFileURL})"
 
-      def file = new File("${workingDir}/${filename}.${extensions(platform)}")
+      def file = new File("${workingDir}/${fileBaseName}-${this.version}.${extensions(platform)}")
       def os = file.newOutputStream()
       os << new URL(androidFileURL).openStream()
       os.close()
