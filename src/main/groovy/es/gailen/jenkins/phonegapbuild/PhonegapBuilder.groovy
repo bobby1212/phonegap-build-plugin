@@ -42,6 +42,7 @@ class PhonegapBuilder {
   private Map appInfo
   private boolean overridedKeys = false
   private PrintStream logger = System.out
+  private long pollingSleepTime = 10000
 
   private Map status = [android:'pending', ios:'pending']
   private List downloads = []
@@ -166,7 +167,7 @@ class PhonegapBuilder {
     this.logger.println "Waiting for Phonegap Build to sculpt binaries..."
     while ('pending' in [status.android, status.ios]) {
       this.logger.println "Asking for status..."
-      sleep(10000)
+      sleep(pollingSleepTime)
       URL url = new URL("${baseURL}/api/v1/apps/?auth_token=${this.token}")
       def data = slurper.parseText(url.text)
       def app = data.apps.find { it.id.toString() == this.appId.toString() }
