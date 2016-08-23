@@ -11,7 +11,7 @@
     <f:entry title="Create new app" field="createNewApp">
       <f:checkbox />
     </f:entry>
-    <f:optionalBlock name="overrideConfig" checked="${instance.overridedConfig}" title="Override www/config.xml">
+    <f:optionalBlock name="overrideConfig" checked="${instance.overridedConfig}" title="Override www/config.xml values">
       <f:entry title="App Name" field="name">
         <f:textbox />
       </f:entry>

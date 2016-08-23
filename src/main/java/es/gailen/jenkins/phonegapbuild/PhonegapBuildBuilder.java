@@ -47,8 +47,12 @@ public class PhonegapBuildBuilder extends Builder {
             this.name = overrideConfig.getString("name");
             this.version = overrideConfig.getString("version");
         }
-        this.pgbuildAppId = pgbuildAppId;
         this.createNewApp = createNewApp;
+        if (this.createNewApp)
+            this.pgbuildAppId = null;
+        else
+            this.pgbuildAppId = pgbuildAppId;
+
         this.pgbuildToken = pgbuildToken;
         this.androidKeyId = androidKeyId;
         this.androidKeyPassword = androidKeyPassword;
@@ -98,14 +102,15 @@ public class PhonegapBuildBuilder extends Builder {
 
     // Will *never* return true
     public boolean getCreateNewApp() {
-        return false;
+        return this.createNewApp;
     }
 
     @Override
     public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
         EnvVars env = build.getEnvironment(listener);
         if (this.createNewApp) {
-            this.pgbuildAppId = PhonegapBuilder.createNewApp(this.pgbuildToken);
+            this.pgbuildAppId = PhonegapBuilder.createNewApp(this.pgbuildToken, listener.getLogger());
+            this.createNewApp = false;
         }
         PhonegapBuilder builder = new PhonegapBuilder(this.pgbuildToken, this.pgbuildAppId, this.androidKeyId, this.iosKeyId, listener.getLogger());
         builder.setFileBaseName(env.get("JOB_NAME"));
@@ -138,14 +143,6 @@ public class PhonegapBuildBuilder extends Builder {
      */
     @Extension // This indicates to Jenkins that this is an implementation of an extension point.
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
-        /**
-         * To persist global configuration information,
-         * simply store it in a field and call save().
-         *
-         * <p>
-         * If you don't want fields to be persisted, use <tt>transient</tt>.
-         */
-        private boolean useFrench;
 
         /**
          * In order to load the persisted global configuration, you have to 
@@ -160,22 +157,27 @@ public class PhonegapBuildBuilder extends Builder {
          */
         public FormValidation doCheckName(@QueryParameter String value)
                 throws IOException, ServletException {
-            if (value.length() == 0)
-                return FormValidation.error("Please set a name");
-            if (value.length() < 4)
-                return FormValidation.warning("Isn't the name too short?");
             return FormValidation.ok();
         }
 
-        public FormValidation doCheckPgbuildAppId(@QueryParameter String value)
+        public FormValidation doCheckPgbuildAppId(@QueryParameter String value, @QueryParameter Boolean createNewApp)
                 throws IOException, ServletException {
-            if (value.length() == 0)
-                return FormValidation.error("Please set PGBuild's job ID");
-            if (value.length() < 4)
-                return FormValidation.warning("Isn't the name too short?");
+            if (createNewApp) {
+                if (value.length() > 0)
+                    return FormValidation.warning("This ID will be lost because you've checked 'Create new app'");
+            } else {
+                if (value.length() == 0)
+                    return FormValidation.error("Please set PGBuild's job ID");
+                if (value.length() < 4)
+                    return FormValidation.warning("Isn't that ID too short? Should be something like 6453738");
+            }
+
             return FormValidation.ok();
         }
 
+        public FormValidation doCheckCreateNewApp(@QueryParameter Boolean value, @QueryParameter String pgbuildAppId) throws IOException, ServletException {
+            return FormValidation.ok();
+        }
 
         public boolean isApplicable(Class<? extends AbstractProject> aClass) {
             // Indicates that this builder can be used with all kinds of project types 
@@ -193,21 +195,11 @@ public class PhonegapBuildBuilder extends Builder {
         public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
             // To persist global configuration information,
             // set that to properties and call save().
-            //useFrench = formData.getBoolean("useFrench");
             // ^Can also use req.bindJSON(this, formData);
             //  (easier when there are many fields; need set* methods for this, like setUseFrench)
+            System.out.println("Configure: "+ formData.toString());
             save();
             return super.configure(req,formData);
-        }
-
-        /**
-         * This method returns true if the global configuration says we should speak French.
-         *
-         * The method name is bit awkward because global.jelly calls this method to determine
-         * the initial state of the checkbox by the naming convention.
-         */
-        public boolean getUseFrench() {
-            return useFrench;
         }
     }
 }

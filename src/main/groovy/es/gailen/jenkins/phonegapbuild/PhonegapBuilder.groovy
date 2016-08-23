@@ -68,7 +68,7 @@ class PhonegapBuilder {
     this.overridedKeys = true
   }
 
-  public static String createNewApp(token) {
+  public static String createNewApp(token, PrintStream logger) {
     File tmpIndex = new File('index.html', File.createTempDir())
     tmpIndex.createNewFile()
     tmpIndex.deleteOnExit()
@@ -84,10 +84,11 @@ class PhonegapBuilder {
         req.entity = multipartRequestEntity
         response.success = { resp, data ->
             appId = data.id
+            logger.println "New app ID created: ${appId}"
         }
         
         response.failure = { resp, a ->
-          println "ERROR - ${resp.status}"
+          logger.println "\n\nError creating new app  - ${resp.status}\n"
         }
     }
     return appId
