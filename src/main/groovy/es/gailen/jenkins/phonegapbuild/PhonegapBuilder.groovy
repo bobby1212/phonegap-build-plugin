@@ -46,7 +46,7 @@ class PhonegapBuilder {
 
   private Map status = [android:'pending', ios:'pending']
   private List downloads = []
-  private final String baseURL = 'https://build.phonegap.com'
+  private final static String baseURL = 'https://build.phonegap.com'
 
   def http = new HTTPBuilder(baseURL)
   def slurper = new groovy.json.JsonSlurper()
@@ -67,7 +67,32 @@ class PhonegapBuilder {
     this.refreshAppInfo()
     this.overridedKeys = true
   }
-  
+
+  public static String createNewApp(token) {
+    File tmpIndex = new File('index.html', File.createTempDir())
+    tmpIndex.createNewFile()
+    tmpIndex.deleteOnExit()
+
+    String appId = ""
+    def http = new HTTPBuilder(baseURL)
+    http.request POST, JSON, { req->
+        uri.path =  "/api/v1/apps" //?auth_token=${token}"
+    
+        MultipartEntity multipartRequestEntity = new MultipartEntity()
+        multipartRequestEntity.addPart('file', new FileBody(tmpIndex, "text/html"))
+        multipartRequestEntity.addPart('auth_token', new StringBody(token))
+        req.entity = multipartRequestEntity
+        response.success = { resp, data ->
+            appId = data.id
+        }
+        
+        response.failure = { resp, a ->
+          println "ERROR - ${resp.status}"
+        }
+    }
+    return appId
+  }
+
   private void refreshAppInfo() {
     this.logger.println "Refreshing '${appId}' app info..."
     this.appInfo = http.get(path: "/api/v1/apps/${appId}", query: [auth_token: token])
