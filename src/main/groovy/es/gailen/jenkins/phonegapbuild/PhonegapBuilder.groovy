@@ -241,6 +241,31 @@ class PhonegapBuilder {
     }
   }
 
+  private void updateAppKeys() {
+    http.request PUT, TEXT, {req->
+        uri.path =  "/api/v1/apps/${this.appId}?auth_token=${this.token}"
+    
+        send JSON, [
+            auth_token: this.token,
+            data: [keys:[
+              ios: [id: this.iosKeyId, password: this.iosKeyPassword],
+              android: [id: this.androidKeyId, password: this.androidKeyPassword]
+              ]
+            ]
+        ]
+
+        response.success = { resp, data ->
+            def slurper = new groovy.json.JsonSlurper()
+            def json = slurper.parseText(data.text)
+            this.logger.println json
+        }
+        
+        response.failure = { resp, a ->
+          this.logger.println "ERROR - ${resp.status}"
+        }
+    }
+  }
+
   void buildApp(FilePath workingDir) {
     if (!this.overridedKeys) {
       this.androidKeyId = this.appInfo.keys?.android?.id
@@ -248,7 +273,7 @@ class PhonegapBuilder {
     }
 
     updateConfigXML("${workingDir}/www/config.xml")
-
+    updateAppKeys()
     String zippath = prepareZipFilePath(workingDir)
     uploadZipFile(zippath)
     waitForBinaries(workingDir)

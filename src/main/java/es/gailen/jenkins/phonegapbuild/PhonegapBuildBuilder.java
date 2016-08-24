@@ -118,7 +118,6 @@ public class PhonegapBuildBuilder extends Builder {
             builder.setVersion(env.expand(this.getVersion()));
             builder.setAppName(env.expand(this.getName()));
         }
-        builder.unlockKeys(this.androidKeyPassword, this.androidKeystorePassword, this.iosKeyPassword);
         builder.buildApp(build.getWorkspace().absolutize());
 
         return true;
