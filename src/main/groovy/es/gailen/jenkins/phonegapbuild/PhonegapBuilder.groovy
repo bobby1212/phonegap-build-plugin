@@ -244,14 +244,24 @@ class PhonegapBuilder {
   private void updateAppKeys() {
     http.request PUT, TEXT, {req->
         uri.path =  "/api/v1/apps/${this.appId}?auth_token=${this.token}"
-    
+
+        def keysData = [keys:[:]]
+        if (this.iosKeyId) {
+          keysData.keys.ios = [id: this.iosKeyId]
+          if (this.iosKeyPassword)
+            keysData.keys.ios.password = this.iosKeyPassword
+        }
+        if (this.androidKeyId) {
+          keysData.keys.android = [id: this.androidKeyId]
+          if (this.androidKeyPassword)
+            keysData.keys.android.key_pw = this.androidKeyPassword
+          if (this.androidKeystorePassword)
+            keysData.keys.android.keystore_pw = this.androidKeystorePassword
+        }
+
         send JSON, [
             auth_token: this.token,
-            data: [keys:[
-              ios: [id: this.iosKeyId, password: this.iosKeyPassword],
-              android: [id: this.androidKeyId, password: this.androidKeyPassword]
-              ]
-            ]
+            data: keysData
         ]
 
         response.success = { resp, data ->
