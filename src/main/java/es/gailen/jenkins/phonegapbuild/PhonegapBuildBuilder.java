@@ -31,6 +31,7 @@ public class PhonegapBuildBuilder extends Builder {
     private boolean configOverrided = false;
     private String name = null;
     private String version = null;
+    private String bundle = null;
     private boolean createNewApp = false;
     private String pgbuildAppId;
     private final String pgbuildToken;
@@ -46,6 +47,7 @@ public class PhonegapBuildBuilder extends Builder {
             this.configOverrided = true;
             this.name = overrideConfig.getString("name");
             this.version = overrideConfig.getString("version");
+            this.bundle = overrideConfig.getString("bundle");
         }
         this.createNewApp = createNewApp;
         if (this.createNewApp)
@@ -62,10 +64,14 @@ public class PhonegapBuildBuilder extends Builder {
     }
 
     public boolean isOverridedConfig() {
-        return name != null || version != null;
+        return this.configOverrided;
     }
     public String getName() {
         return name;
+    }
+
+    public String getBundle() {
+        return bundle;
     }
 
     public String getPgbuildAppId() {
@@ -117,6 +123,7 @@ public class PhonegapBuildBuilder extends Builder {
         if (this.configOverrided) {
             builder.setVersion(env.expand(this.getVersion()));
             builder.setAppName(env.expand(this.getName()));
+            builder.setAppBundle(env.expand(this.getBundle()));
         }
         builder.buildApp(build.getWorkspace().absolutize());
 

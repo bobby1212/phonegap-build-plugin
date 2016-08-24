@@ -31,6 +31,7 @@ class PhonegapBuilder {
   def token
   def appName = null
   def version = null
+  def appBundle = null
   def fileBaseName = null  // Basename for binaries
   def appId
   def androidKeyId
@@ -226,16 +227,20 @@ class PhonegapBuilder {
   }
 
   void updateConfigXML(path) {
-    def config_xml = new XmlParser().parse(path)
-    if (this.version) {
-      this.logger.println "Changing 'version' in config.xml to '${this.version}'"
-      config_xml.attributes().put('version', this.version)
-    }
-    if (this.appName) {
-      this.logger.println "Changing 'title' in config.xml to '${this.appName}'"
-      config_xml.name.replaceNode{name(this.appName)}
-    }
-    if (this.appName && this.version) {
+    if (this.version || this.appName || this.appBundle) {
+      def config_xml = new XmlParser().parse(path)
+      if (this.version) {
+        this.logger.println "Changing 'version' in config.xml to '${this.version}'"
+        config_xml.attributes().put('version', this.version)
+      }
+      if (this.appName) {
+        this.logger.println "Changing 'title' in config.xml to '${this.appName}'"
+        config_xml.name.replaceNode{name(this.appName)}
+      }
+      if (this.appBundle) {
+        this.logger.println "Changing 'widget id' in config.xml to '${this.appName}'"
+        config_xml.attributes().put('id', this.appBundle)
+      }
       new XmlNodePrinter(new PrintWriter(new FileWriter(path))).print(config_xml)
       this.logger.println("Configuration file updated at '${path}'!")
     }
@@ -267,7 +272,11 @@ class PhonegapBuilder {
         response.success = { resp, data ->
             def slurper = new groovy.json.JsonSlurper()
             def json = slurper.parseText(data.text)
-            this.logger.println json
+            this.logger.println """
+              Application updated: ${json?.id}
+              Android key:\t${json?.keys?.android?.id} - ${json?.keys?.android?.title}
+              iOS key:\t${json?.keys?.ios?.id} - ${json?.keys?.ios?.title}
+            """.stripIndent()
         }
         
         response.failure = { resp, a ->
