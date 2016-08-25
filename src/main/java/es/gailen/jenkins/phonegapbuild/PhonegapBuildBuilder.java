@@ -119,6 +119,9 @@ public class PhonegapBuildBuilder extends Builder {
             this.createNewApp = false;
         }
         PhonegapBuilder builder = new PhonegapBuilder(this.pgbuildToken, this.pgbuildAppId, this.androidKeyId, this.iosKeyId, listener.getLogger());
+        builder.setAndroidKeyPassword(androidKeyPassword);
+        builder.setAndroidKeystorePassword(androidKeystorePassword);
+        builder.setIosKeyPassword(iosKeyPassword);
         builder.setFileBaseName(env.get("JOB_NAME"));
         if (this.configOverrided) {
             builder.setVersion(env.expand(this.getVersion()));
