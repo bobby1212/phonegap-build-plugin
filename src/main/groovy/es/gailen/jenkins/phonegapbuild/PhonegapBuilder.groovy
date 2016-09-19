@@ -31,6 +31,7 @@ class PhonegapBuilder {
   def token
   def appName = null
   def version = null
+  def versionCode = null
   def appBundle = null
   def fileBaseName = null  // Basename for binaries
   def appId
@@ -227,11 +228,25 @@ class PhonegapBuilder {
   }
 
   void updateConfigXML(path) {
-    if (this.version || this.appName || this.appBundle) {
+    /**
+      Código de version: número, específico
+        - versionCode (android)
+        - CFBundleVersion (ios)
+      Version de app: "0.0.xxxx"
+        - version: (android e ios)
+    **/
+    if (this.version || this.versionCode || this.appName || this.appBundle) {
       def config_xml = new XmlParser().parse(path)
       if (this.version) {
         this.logger.println "Changing 'version' in config.xml to '${this.version}'"
         config_xml.attributes().put('version', this.version)
+      }
+      if (this.versionCode) {
+        this.logger.println "Changing 'versionCode' in config.xml to '${this.versionCode}'"
+        config_xml.attributes().put('versionCode', this.versionCode)
+        config_xml.attributes().put('android-versionCode', this.versionCode)
+        config_xml.attributes().put('CFBundleVersion', this.versionCode)
+        config_xml.children().add(0, new Node(null, 'preference', [name:'android-versionCode', value:this.versionCode]))
       }
       if (this.appName) {
         this.logger.println "Changing 'title' in config.xml to '${this.appName}'"

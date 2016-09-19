@@ -18,6 +18,9 @@
       <f:entry title="App Version" field="version">
         <f:textbox />
       </f:entry>
+      <f:entry title="Internal version number" field="versionCode">
+        <f:textbox />
+      </f:entry>
       <f:entry title="App Bundle" field="bundle">
         <f:textbox />
       </f:entry>

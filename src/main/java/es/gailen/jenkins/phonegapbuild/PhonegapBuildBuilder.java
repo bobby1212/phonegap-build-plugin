@@ -31,6 +31,7 @@ public class PhonegapBuildBuilder extends Builder {
     private boolean configOverrided = false;
     private String name = null;
     private String version = null;
+    private String versionCode = null;
     private String bundle = null;
     private boolean createNewApp = false;
     private String pgbuildAppId;
@@ -47,6 +48,7 @@ public class PhonegapBuildBuilder extends Builder {
             this.configOverrided = true;
             this.name = overrideConfig.getString("name");
             this.version = overrideConfig.getString("version");
+            this.versionCode = overrideConfig.getString("versionCode");
             this.bundle = overrideConfig.getString("bundle");
         }
         this.createNewApp = createNewApp;
@@ -106,6 +108,10 @@ public class PhonegapBuildBuilder extends Builder {
         return version;
     }
 
+    public String getVersionCode() {
+        return versionCode;
+    }
+
     // Will *never* return true
     public boolean getCreateNewApp() {
         return this.createNewApp;
@@ -125,6 +131,7 @@ public class PhonegapBuildBuilder extends Builder {
         builder.setFileBaseName(env.get("JOB_NAME"));
         if (this.configOverrided) {
             builder.setVersion(env.expand(this.getVersion()));
+            builder.setVersionCode(env.expand(this.getVersionCode()));
             builder.setAppName(env.expand(this.getName()));
             builder.setAppBundle(env.expand(this.getBundle()));
         }
