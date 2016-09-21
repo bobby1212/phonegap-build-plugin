@@ -246,7 +246,6 @@ class PhonegapBuilder {
         config_xml.attributes().put('versionCode', this.versionCode)
         config_xml.attributes().put('android-versionCode', this.versionCode)
         config_xml.attributes().put('CFBundleVersion', this.versionCode)
-        config_xml.children().add(0, new Node(null, 'preference', [name:'android-versionCode', value:this.versionCode]))
       }
       if (this.appName) {
         this.logger.println "Changing 'title' in config.xml to '${this.appName}'"
