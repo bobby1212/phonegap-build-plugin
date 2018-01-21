@@ -25,6 +25,13 @@ jenkinsPlugin {
             email "jorge.uriarte@gailen.es"
         }
     }
+    licenses {
+        license {
+            name 'MIT License'
+            distribution 'repo'
+            url 'https://opensource.org/licenses/MIT'
+        }
+    }
 }
 
 dependencies {
