@@ -6,7 +6,7 @@ apply plugin: 'groovy'
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
 
-group = "es.gailen.jenkins"
+group = "org.jenkins-ci.plugins"
 version = "0.0.1-SNAPSHOT"    // Or whatever your version is.
 description = "A plugin for automating the use of Phonegap Build for hybrid/ionic/cordova application development"
 
